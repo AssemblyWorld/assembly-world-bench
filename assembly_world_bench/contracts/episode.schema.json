@@ -1,0 +1,622 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "3DWebAgent Episode 1",
+  "type": "object",
+  "properties": {
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "3dwebagent-episode"
+        },
+        "version": {
+          "const": 1
+        },
+        "engine": {
+          "const": "3.12.0"
+        },
+        "name": {
+          "type": "string"
+        },
+        "units": {
+          "enum": ["SI", "normalized"]
+        },
+        "stateSpec": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stateSize": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runtime": {
+          "type": "object",
+          "properties": {
+            "physics": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "gravity": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "detection": {
+                  "type": "boolean"
+                },
+                "response": {
+                  "type": "boolean"
+                },
+                "strategy": {
+                  "enum": ["fixed", "settle"]
+                },
+                "duration": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60
+                },
+                "maxDuration": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60
+                },
+                "quietDuration": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60
+                },
+                "linearThreshold": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60
+                },
+                "angularThreshold": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60
+                }
+              },
+              "required": [
+                "enabled",
+                "gravity",
+                "detection",
+                "response",
+                "strategy",
+                "duration",
+                "maxDuration",
+                "quietDuration",
+                "linearThreshold",
+                "angularThreshold"
+              ],
+              "additionalProperties": false
+            },
+            "enabledTools": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "list_objects",
+                  "get_object",
+                  "get_scene",
+                  "get_state",
+                  "translate_objects",
+                  "rotate_objects",
+                  "set_object_pose",
+                  "group_objects",
+                  "ungroup_objects",
+                  "capture_scene",
+                  "move_camera",
+                  "apply_force",
+                  "start_episode",
+                  "end_episode",
+                  "advance_simulation"
+                ]
+              }
+            }
+          },
+          "required": ["physics", "enabledTools"],
+          "additionalProperties": false
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "const": "rigid"
+              },
+              "collisionEnabled": {
+                "type": "boolean"
+              }
+            },
+            "required": ["id", "name", "type"],
+            "additionalProperties": false
+          }
+        },
+        "hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contract": {
+          "const": "3dwebagent-runtime-1"
+        },
+        "lifecycle": {
+          "enum": ["setup", "active", "ended"]
+        },
+        "originTime": {
+          "type": "number"
+        },
+        "task": {
+          "type": "string"
+        },
+        "end": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "string"
+            }
+          },
+          "required": ["reason"],
+          "additionalProperties": false
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "producer": {
+          "$ref": "#/definitions/producer"
+        }
+      },
+      "required": [
+        "format",
+        "version",
+        "engine",
+        "name",
+        "units",
+        "stateSpec",
+        "stateSize",
+        "runtime",
+        "objects",
+        "hashes",
+        "id",
+        "contract",
+        "lifecycle",
+        "originTime",
+        "requiredCapabilities",
+        "producer"
+      ],
+      "additionalProperties": false
+    },
+    "initial": {
+      "$ref": "#/definitions/frame"
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/frame"
+      }
+    },
+    "calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "name": {
+            "enum": [
+              "list_objects",
+              "get_object",
+              "get_scene",
+              "get_state",
+              "translate_objects",
+              "rotate_objects",
+              "set_object_pose",
+              "group_objects",
+              "ungroup_objects",
+              "capture_scene",
+              "move_camera",
+              "apply_force",
+              "start_episode",
+              "end_episode",
+              "advance_simulation",
+              "edit_poses",
+              "set_camera"
+            ]
+          },
+          "arguments": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "state_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "enum": ["completed", "error"]
+          },
+          "error": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "actor": {
+            "enum": ["agent", "human"]
+          },
+          "producer": {
+            "$ref": "#/definitions/producer"
+          },
+          "before_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trace_start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trace_end": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sim_start": {
+            "type": "number"
+          },
+          "sim_end": {
+            "type": "number"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "result": {},
+          "error_code": {
+            "enum": [
+              "invalid_argument",
+              "disabled",
+              "busy",
+              "cancelled",
+              "unstable_physics",
+              "historical_edit",
+              "episode_ended",
+              "unsupported_capability"
+            ]
+          },
+          "cancellation": {
+            "type": "object",
+            "properties": {
+              "phase": {
+                "type": "string"
+              },
+              "step": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["phase", "step"],
+            "additionalProperties": false
+          },
+          "transport": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "name",
+          "arguments",
+          "timestamp",
+          "state_index",
+          "status",
+          "id",
+          "actor",
+          "producer",
+          "before_index",
+          "trace_start",
+          "trace_end",
+          "sim_start",
+          "sim_end",
+          "steps"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "name": {
+                  "enum": ["edit_poses", "set_camera"]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "actor": {
+                  "const": "human"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "trajectory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "integration": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "target": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              }
+            },
+            "required": ["position", "target"],
+            "additionalProperties": false
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "type": "string"
+                },
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 2,
+                  "uniqueItems": true
+                }
+              },
+              "required": ["id", "name", "members"],
+              "additionalProperties": false
+            }
+          },
+          "groupCounter": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "call_id": {
+            "type": "string"
+          },
+          "phase": {
+            "enum": ["input", "physics", "final", "rollback"]
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sim_time": {
+            "type": "number"
+          },
+          "applied": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              }
+            },
+            "required": ["body", "values"],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "index",
+          "integration",
+          "camera",
+          "groups",
+          "groupCounter",
+          "call_id",
+          "phase",
+          "step",
+          "sim_time"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "call_id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": ["request", "complete"]
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "sim_time": {
+            "type": "number"
+          }
+        },
+        "required": ["index", "call_id", "kind", "timestamp", "sim_time"],
+        "additionalProperties": false
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": ["manifest", "initial", "states", "events", "trajectory", "revision"],
+  "additionalProperties": false,
+  "definitions": {
+    "frame": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "integration": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "camera": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "target": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": ["position", "target"],
+          "additionalProperties": false
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 2,
+                "uniqueItems": true
+              }
+            },
+            "required": ["id", "name", "members"],
+            "additionalProperties": false
+          }
+        },
+        "groupCounter": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["index", "integration", "camera", "groups", "groupCounter"],
+      "additionalProperties": false
+    },
+    "producer": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "enum": ["wasm", "native"]
+        },
+        "engine": {
+          "const": "3.12.0"
+        },
+        "implementation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "renderer": {
+          "type": "string"
+        },
+        "build": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "engineBuild": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["backend", "engine", "implementation", "language"],
+      "additionalProperties": false
+    }
+  }
+}

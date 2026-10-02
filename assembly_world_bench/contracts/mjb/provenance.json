@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/DavidZhang73/3DWebAgent",
+  "path": "schema/episode.schema.json",
+  "sha256": "c65e9f6066798b513de8aa7189248b1f633d2a47e7026a9d8bbb3af7288c8a82",
+  "contract": "3dwebagent-runtime-1",
+  "episode_version": 1,
+  "commit": "e8a2ca9f68c6be1fca3e017c023b059c9a84855a"
+}

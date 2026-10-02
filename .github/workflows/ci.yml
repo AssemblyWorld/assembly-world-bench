@@ -1,0 +1,96 @@
+name: Validate benchmark harness
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
+        env:
+          HF_HUB_OFFLINE: "1"
+      - name: Run the source CLI without installing the project
+        run: |
+          uv run --locked bench.py --help
+          uv run --locked bench.py run --help
+          uv run --locked python - <<'PYCODE'
+          import importlib.metadata
+          import importlib.util
+          assert importlib.util.find_spec("datasets") is None
+          try:
+              importlib.metadata.distribution("assembly-world-bench")
+          except importlib.metadata.PackageNotFoundError:
+              pass
+          else:
+              raise AssertionError("The project must not be installed as a distribution")
+          PYCODE
+  browser:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Set up the Linux virtual desktop
+        if: runner.os == 'Linux'
+        run: |
+          google-chrome --version
+          sudo apt-get install -y openbox
+      - run: npm install --global chrome-devtools-mcp@1.8.0
+      - run: uv sync --locked
+      - name: Verify pinned HF downloads and local-only snapshots (no model)
+        run: |
+          uv run python - <<'PYCODE'
+          import os
+          import huggingface_hub
+          from assembly_world_bench.data import Package, BLOCKS
+          from assembly_world_bench.scoring import evaluation_inputs
+          package = Package()
+          selected = {}
+          for block in BLOCKS:
+              sid = next(iter(package.configuration(block)[1]["samples"]))
+              selected[block] = [sid]
+              entry = package.entry(block, sid, scoring=True)
+              evaluation_inputs(entry)
+              if block == "ikea-manualbook":
+                  with open(os.environ["GITHUB_ENV"], "a") as stream:
+                      stream.write(f"AWB_BROWSER_EPISODE={entry['initial']}\n")
+          huggingface_hub.hf_hub_download = lambda *a, **k: (_ for _ in ()).throw(AssertionError("Local mode attempted network"))
+          local = Package(package.root, revision=package.revision)
+          local.download(selected)
+          PYCODE
+      - name: Browser roundtrip on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum sh -c 'openbox >/tmp/awb-window-manager.log 2>&1 & uv run pytest -q -s --log-cli-level=INFO tests/test_browser_live.py'
+        env:
+          AWB_CHROME_PATH: /usr/bin/google-chrome
+          AWB_MCP_COMMAND: chrome-devtools-mcp
+      - name: Browser roundtrip on macOS
+        if: runner.os == 'macOS'
+        run: uv run pytest -q -s --log-cli-level=INFO tests/test_browser_live.py
+        env:
+          AWB_CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+          AWB_MCP_COMMAND: chrome-devtools-mcp
